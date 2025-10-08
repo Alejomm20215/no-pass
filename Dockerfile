@@ -14,6 +14,13 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
+# Install PyInstaller for building the CLI executable
+RUN pip install --no-cache-dir --user pyinstaller
+
+# Build the CLI executable
+COPY scripts/cli_crack.py .
+RUN pyinstaller --onefile --name pdf-password-tools scripts/cli_crack.py
+
 # Stage 2: Runtime (minimal image for running the app)
 FROM python:3.11-slim AS runtime
 
@@ -25,7 +32,10 @@ WORKDIR /app
 # Copy installed packages from builder stage
 COPY --from=builder /root/.local /home/appuser/.local
 
-# Copy application code
+# Copy the built CLI executable from builder stage
+COPY --from=builder /app/dist/pdf-password-tools /usr/local/bin/pdf-password-tools
+
+# Copy application code (for web server fallback)
 COPY . .
 
 # Create necessary directories
@@ -36,7 +46,7 @@ RUN mkdir -p data/uploads data/outputs logs config/wordlists && \
 USER appuser
 
 # Set environment variables
-ENV PATH="/home/appuser/.local/bin:${PATH}" \
+ENV PATH="/home/appuser/.local/bin:/usr/local/bin:${PATH}" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
@@ -47,5 +57,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Expose port
 EXPOSE 8000
 
-# Default command (can be overridden)
-CMD ["python", "app/main.py"]
+# Default command for CLI tool (can be overridden for web server)
+ENTRYPOINT ["pdf-password-tools"]
+CMD ["--help"]
