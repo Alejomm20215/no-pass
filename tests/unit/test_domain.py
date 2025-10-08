@@ -36,9 +36,7 @@ class TestPDFDocument:
         """Test path conversion"""
         pdf = PDFDocument(filename="test.pdf", file_path="/some/path.pdf")
         assert isinstance(pdf.file_path, Path)
-        # Path conversion should work regardless of platform
-        assert pdf.file_path.name == "path.pdf"
-        assert "some" in str(pdf.file_path)
+        assert str(pdf.file_path) == "/some/path.pdf"
 
 
 class TestAttackOptions:

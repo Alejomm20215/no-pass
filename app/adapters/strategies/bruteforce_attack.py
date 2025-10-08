@@ -4,9 +4,6 @@ from pathlib import Path
 from typing import Optional, Callable, Iterator
 import time
 import itertools
-import logging
-
-logger = logging.getLogger(__name__)
 
 from app.core.interfaces.attack_strategy import IAttackStrategy
 from app.core.interfaces.pdf_handler import IPDFHandler
@@ -32,30 +29,9 @@ class BruteForceAttack(IAttackStrategy):
     
     def _generate_passwords(self) -> Iterator[str]:
         """Generate all possible password combinations"""
-        # Add bounds checking to prevent memory exhaustion
-        max_combinations = 10**12  # Reasonable upper limit
-
         for length in range(self.min_length, self.max_length + 1):
-            charset_len = len(self.charset)
-            combinations_for_length = charset_len ** length
-
-            # Skip lengths that would generate too many combinations
-            if combinations_for_length > max_combinations:
-                logger.warning(f"Skipping length {length}: would generate {combinations_for_length:,} combinations (> {max_combinations:,} limit)")
-                continue
-
-            if combinations_for_length > self.max_attempts:
-                logger.warning(f"Length {length} would exceed max_attempts ({self.max_attempts:,}), limiting generation")
-                # Generate only up to max_attempts for this length
-                count = 0
-                for combination in itertools.product(self.charset, repeat=length):
-                    if count >= self.max_attempts:
-                        break
-                    yield ''.join(combination)
-                    count += 1
-            else:
-                for combination in itertools.product(self.charset, repeat=length):
-                    yield ''.join(combination)
+            for combination in itertools.product(self.charset, repeat=length):
+                yield ''.join(combination)
     
     def execute(
         self,

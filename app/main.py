@@ -32,18 +32,6 @@ app.include_router(pdf.router, prefix=settings.API_V1_PREFIX)
 app.include_router(crack.router, prefix=settings.API_V1_PREFIX)
 
 
-# Root endpoint
-@app.get("/")
-async def root():
-    """Root endpoint with API information"""
-    return {
-        "name": settings.APP_NAME,
-        "version": settings.APP_VERSION,
-        "docs": "/docs",
-        "health": f"{settings.API_V1_PREFIX}/health"
-    }
-
-
 # Startup event
 @app.on_event("startup")
 async def startup_event():
@@ -53,11 +41,11 @@ async def startup_event():
 
     # Log startup information
     logger = logging.getLogger("app.main")
-    logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
-    logger.info(f"Upload directory: {settings.UPLOAD_DIR}")
-    logger.info(f"Output directory: {settings.OUTPUT_DIR}")
-    logger.info(f"Wordlist directory: {settings.WORDLIST_DIR}")
-    logger.info(f"Debug mode: {settings.DEBUG}")
+    logger.info(f"🚀 Starting {settings.APP_NAME} v{settings.APP_VERSION}")
+    logger.info(f"📁 Upload directory: {settings.UPLOAD_DIR}")
+    logger.info(f"📁 Output directory: {settings.OUTPUT_DIR}")
+    logger.info(f"📁 Wordlist directory: {settings.WORDLIST_DIR}")
+    logger.info(f"🔧 Debug mode: {settings.DEBUG}")
 
 
 # Shutdown event
@@ -65,7 +53,7 @@ async def startup_event():
 async def shutdown_event():
     """Run on application shutdown"""
     logger = logging.getLogger("app.main")
-    logger.info(f"Shutting down {settings.APP_NAME}")
+    logger.info(f"👋 Shutting down {settings.APP_NAME}")
 
 
 if __name__ == "__main__":

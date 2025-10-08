@@ -2,10 +2,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 import time
-import logging
 from typing import Optional, Callable
-
-logger = logging.getLogger(__name__)
 
 from app.core.domain.entities import AttackOptions, CrackResult
 from app.core.interfaces.attack_strategy import IAttackStrategy
@@ -31,33 +28,13 @@ class JohnTheRipperAttack(IAttackStrategy):
         return temp_file, temp_file
 
     def _run_command(self, *args: str, capture: bool = False, timeout: Optional[int] = None) -> subprocess.CompletedProcess:
-        """Run external command with improved error handling"""
-        import shutil
-
-        # Check if command exists
-        cmd_name = args[0] if args else ""
-        if not shutil.which(cmd_name):
-            raise FileNotFoundError(f"Command not found: {cmd_name}")
-
-        try:
-            return subprocess.run(
-                list(args),
-                check=True,
-                capture_output=capture,
-                text=True,
-                timeout=timeout,
-            )
-        except subprocess.TimeoutExpired as e:
-            logger.error(f"Command timed out after {timeout}s: {' '.join(args)}")
-            raise
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Command failed: {' '.join(args)}")
-            logger.error(f"Return code: {e.returncode}")
-            if e.stdout:
-                logger.error(f"Stdout: {e.stdout[:1000]}...")  # Limit output size
-            if e.stderr:
-                logger.error(f"Stderr: {e.stderr[:1000]}...")  # Limit output size
-            raise
+        return subprocess.run(
+            list(args),
+            check=True,
+            capture_output=capture,
+            text=True,
+            timeout=timeout,
+        )
 
     def execute(
         self,
@@ -67,16 +44,6 @@ class JohnTheRipperAttack(IAttackStrategy):
         start_time = time.time()
         hash_file: Optional[Path] = None
         temp_wordlist: Optional[Path] = None
-
-        def cleanup_temp_files():
-            """Safely cleanup temporary files"""
-            for temp_file in [hash_file, temp_wordlist]:
-                if temp_file and temp_file.exists():
-                    try:
-                        temp_file.unlink()
-                        logger.debug(f"Cleaned up temp file: {temp_file}")
-                    except Exception as e:
-                        logger.warning(f"Failed to cleanup temp file {temp_file}: {e}")
 
         try:
             if progress_callback:
@@ -159,4 +126,7 @@ class JohnTheRipperAttack(IAttackStrategy):
                 error="John the Ripper operation timed out",
             )
         finally:
-            cleanup_temp_files()
+            if hash_file and hash_file.exists():
+                hash_file.unlink(missing_ok=True)
+            if temp_wordlist and temp_wordlist.exists():
+                temp_wordlist.unlink(missing_ok=True)
