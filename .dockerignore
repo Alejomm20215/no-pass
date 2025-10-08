@@ -1,0 +1,81 @@
+# Version control
+.git
+.gitignore
+
+# Python cache and build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Testing and coverage
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+.tox/
+.cache
+nosetests.xml
+
+# Logs and temporary files
+logs/
+*.log
+debug.log
+app.log
+*.out
+
+# Runtime data directories
+data/uploads/
+data/outputs/
+config/wordlists/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS specific files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.lnk
+
+# Documentation (not needed in container)
+docs/
+*.md
+
+# Development tools and scripts
+scripts/
+requirements-dev.txt
+
+# Docker files (avoid recursive copies)
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# GitHub specific
+.github/
+
+# Temporary and backup files
+*.tmp
+*.bak
+*.backup

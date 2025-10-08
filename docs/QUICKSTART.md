@@ -1,52 +1,52 @@
 # PDF Password Tools - Quick Start
 
-## 📦 Installation
+## Installation
 ```bash
 pip install pikepdf
 ```
 
 ---
 
-## 🎯 Common Use Cases
+## Common Use Cases
 
 ### Know the password → Unlock
 ```bash
-python cli_unlock.py protected.pdf -p "password" -o unlocked.pdf
+python scripts/cli_unlock.py protected.pdf -p "password" -o unlocked.pdf
 ```
 
 ### Don't know password → Crack it
 ```bash
 # Try common passwords (fastest)
-python cli_crack.py --file protected.pdf --mode dictionary
+python scripts/cli_crack.py --file protected.pdf --mode dictionary
 
 # Custom wordlist
-python cli_crack.py --file protected.pdf --wordlist custom.txt
+python scripts/cli_crack.py --file protected.pdf --wordlist custom.txt
 
 # Numeric brute force (short passwords)
-python cli_crack.py --file protected.pdf --mode bruteforce --max-length 6
+python scripts/cli_crack.py --file protected.pdf --mode bruteforce --max-length 6
 ```
 
 ### Process multiple PDFs
 ```bash
-python cli_crack.py --directory ./pdfs --mode dictionary --save
+python scripts/cli_crack.py --directory ./pdfs --mode dictionary --save
 ```
 
 ---
 
-## ⚡ Key Commands
+## Key Commands
 
 | Command | Description |
 |---------|-------------|
-| `cli_unlock.py` | Remove password (if known) |
-| `cli_crack.py --mode dictionary` | Try common passwords |
-| `cli_crack.py --mode bruteforce` | Generate combinations |
-| `cli_crack.py --mode john` | Use John the Ripper |
-| `cli_crack.py --mode pdfcrack` | Use PDFCrack |
-| `cli_crack.py --directory` | Process folder of PDFs |
+| `scripts/cli_unlock.py` | Remove password (if known) |
+| `scripts/cli_crack.py --mode dictionary` | Try common passwords |
+| `scripts/cli_crack.py --mode bruteforce` | Generate combinations |
+| `scripts/cli_crack.py --mode john` | Use John the Ripper |
+| `scripts/cli_crack.py --mode pdfcrack` | Use PDFCrack |
+| `scripts/cli_crack.py --directory` | Process folder of PDFs |
 
 ---
 
-## 📋 Workflow
+## Workflow
 
 1. **Dictionary first** (fastest)
 2. **Custom wordlist** (contextual)
@@ -54,7 +54,7 @@ python cli_crack.py --directory ./pdfs --mode dictionary --save
 
 ---
 
-## 🔧 Key Options
+## Key Options
 
 | Option | Description | Example |
 |--------|-------------|---------|
@@ -67,7 +67,7 @@ python cli_crack.py --directory ./pdfs --mode dictionary --save
 
 ---
 
-## ⚡ Performance
+## Performance
 
 | Attack | Time | Notes |
 |--------|------|-------|
@@ -77,7 +77,7 @@ python cli_crack.py --directory ./pdfs --mode dictionary --save
 
 ---
 
-## 🆘 Common Issues
+## Common Issues
 
 **"Requires pikepdf"**: `pip install pikepdf`
 **"Too slow"**: Use `--max-length 4` or `--charset numeric`
@@ -85,11 +85,11 @@ python cli_crack.py --directory ./pdfs --mode dictionary --save
 
 ---
 
-## 🚀 30-Second Start
+## 30-Second Start
 
 ```bash
 pip install pikepdf
-python cli_crack.py --directory ./your_pdfs --save
+python scripts/cli_crack.py --directory ./your_pdfs --save
 # Check results in passwords_found.txt
 ```
 
