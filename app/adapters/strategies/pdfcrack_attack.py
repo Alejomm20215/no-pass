@@ -2,7 +2,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 import time
-from typing import Optional, Callable
+from typing import Optional, Callable, Tuple
 
 from app.core.domain.entities import AttackOptions, CrackResult
 from app.core.interfaces.attack_strategy import IAttackStrategy
@@ -14,7 +14,7 @@ class PdfCrackAttack(IAttackStrategy):
     def __init__(self, options: AttackOptions):
         self.options = options
 
-    def _prepare_wordlist(self) -> tuple[Optional[Path], Optional[Path]]:
+    def _prepare_wordlist(self) -> Tuple[Optional[Path], Optional[Path]]:
         if self.options.wordlist_file:
             return self.options.wordlist_file, None
 
