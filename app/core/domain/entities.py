@@ -10,6 +10,7 @@ from uuid import uuid4
 
 class JobStatus(str, Enum):
     """Job processing status"""
+
     QUEUED = "queued"
     PROCESSING = "processing"
     COMPLETED = "completed"
@@ -19,6 +20,7 @@ class JobStatus(str, Enum):
 
 class AttackMode(str, Enum):
     """Password attack methods"""
+
     DICTIONARY = "dictionary"
     BRUTEFORCE = "bruteforce"
     HYBRID = "both"  # Try dictionary first, then bruteforce
@@ -29,6 +31,7 @@ class AttackMode(str, Enum):
 
 class CharsetType(str, Enum):
     """Character sets for brute force"""
+
     NUMERIC = "numeric"
     LOWERCASE = "lowercase"
     UPPERCASE = "uppercase"
@@ -39,13 +42,14 @@ class CharsetType(str, Enum):
 @dataclass
 class PDFDocument:
     """Represents a PDF document"""
+
     id: str = field(default_factory=lambda: str(uuid4()))
     filename: str = ""
     file_path: Optional[Path] = None
     size: int = 0
     is_protected: bool = False
     created_at: datetime = field(default_factory=datetime.now)
-    
+
     def __post_init__(self):
         if self.file_path and isinstance(self.file_path, str):
             self.file_path = Path(self.file_path)
@@ -54,6 +58,7 @@ class PDFDocument:
 @dataclass
 class AttackOptions:
     """Options for password attack"""
+
     mode: AttackMode = AttackMode.DICTIONARY
     charset: CharsetType = CharsetType.NUMERIC
     min_length: int = 1
@@ -75,6 +80,7 @@ class AttackOptions:
 @dataclass
 class CrackResult:
     """Result of password cracking attempt"""
+
     success: bool
     password: Optional[str] = None
     method: Optional[str] = None  # "dictionary" or "bruteforce"
@@ -86,6 +92,7 @@ class CrackResult:
 @dataclass
 class CrackJob:
     """Represents a password cracking job"""
+
     id: str = field(default_factory=lambda: str(uuid4()))
     pdf_id: str = ""
     pdf_path: Optional[Path] = None
@@ -97,36 +104,36 @@ class CrackJob:
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     error: Optional[str] = None
-    
+
     def __post_init__(self):
         if self.pdf_path and isinstance(self.pdf_path, str):
             self.pdf_path = Path(self.pdf_path)
         if self.options is None:
             self.options = AttackOptions()
-    
+
     def start(self):
         """Mark job as started"""
         self.status = JobStatus.PROCESSING
         self.started_at = datetime.now()
-    
+
     def complete(self, result: CrackResult):
         """Mark job as completed"""
         self.status = JobStatus.COMPLETED if result.success else JobStatus.FAILED
         self.result = result
         self.progress = 100.0
         self.completed_at = datetime.now()
-    
+
     def fail(self, error: str):
         """Mark job as failed"""
         self.status = JobStatus.FAILED
         self.error = error
         self.completed_at = datetime.now()
-    
+
     def cancel(self):
         """Cancel the job"""
         self.status = JobStatus.CANCELLED
         self.completed_at = datetime.now()
-    
+
     def update_progress(self, progress: float):
         """Update job progress"""
         self.progress = min(100.0, max(0.0, progress))
@@ -135,11 +142,11 @@ class CrackJob:
 @dataclass
 class UnlockResult:
     """Result of PDF unlocking"""
+
     success: bool
     unlocked_path: Optional[Path] = None
     error: Optional[str] = None
-    
+
     def __post_init__(self):
         if self.unlocked_path and isinstance(self.unlocked_path, str):
             self.unlocked_path = Path(self.unlocked_path)
-

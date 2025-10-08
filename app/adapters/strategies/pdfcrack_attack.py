@@ -21,13 +21,17 @@ class PdfCrackAttack(IAttackStrategy):
         if not self.options.wordlist:
             return None, None
 
-        temp_file = Path(tempfile.mkstemp(prefix="pdfcrack_wordlist_", suffix=".txt")[1])
+        temp_file = Path(
+            tempfile.mkstemp(prefix="pdfcrack_wordlist_", suffix=".txt")[1]
+        )
         with temp_file.open("w", encoding="utf-8", errors="ignore") as fh:
             for password in self.options.wordlist:
                 fh.write(f"{password}\n")
         return temp_file, temp_file
 
-    def _run_command(self, *args: str, timeout: Optional[int] = None, capture: bool = False) -> subprocess.CompletedProcess:
+    def _run_command(
+        self, *args: str, timeout: Optional[int] = None, capture: bool = False
+    ) -> subprocess.CompletedProcess:
         return subprocess.run(
             list(args),
             check=True,
@@ -55,8 +59,20 @@ class PdfCrackAttack(IAttackStrategy):
             if wordlist_path:
                 args.extend(["-w", str(wordlist_path)])
             else:
-                args.extend(["-c", "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"])
-                args.extend(["-n", str(self.options.min_length), "-m", str(self.options.max_length)])
+                args.extend(
+                    [
+                        "-c",
+                        "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                    ]
+                )
+                args.extend(
+                    [
+                        "-n",
+                        str(self.options.min_length),
+                        "-m",
+                        str(self.options.max_length),
+                    ]
+                )
 
             proc = self._run_command(*args, capture=True, timeout=self.options.timeout)
 
@@ -106,3 +122,13 @@ class PdfCrackAttack(IAttackStrategy):
         finally:
             if temp_wordlist and temp_wordlist.exists():
                 temp_wordlist.unlink(missing_ok=True)
+
+    def estimate_time(self) -> float:
+        """Estimate roughly proportional to timeout, capped for reporting."""
+        return min(float(self.options.timeout or 3600), 900.0)
+
+    def estimate_attempts(self) -> int:
+        """Return wordlist size when provided, else 0 (unknown)."""
+        if self.options.wordlist:
+            return len(self.options.wordlist)
+        return 0

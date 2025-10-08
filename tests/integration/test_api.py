@@ -7,10 +7,12 @@ import os
 import tempfile
 from pathlib import Path
 
+
 # Create a test PDF file
 def create_test_pdf():
     """Create a simple test PDF for testing"""
     import pikepdf
+
     temp_dir = Path(tempfile.gettempdir()) / "pdf_test"
     temp_dir.mkdir(parents=True, exist_ok=True)
     pdf_path = temp_dir / "test.pdf"
@@ -53,10 +55,10 @@ class TestAPI:
         test_pdf_path = create_test_pdf()
 
         try:
-            with open(test_pdf_path, 'rb') as f:
+            with open(test_pdf_path, "rb") as f:
                 response = client.post(
                     "/api/v1/pdf/upload",
-                    files={"file": ("test.pdf", f, "application/pdf")}
+                    files={"file": ("test.pdf", f, "application/pdf")},
                 )
 
             assert response.status_code == 201
@@ -78,10 +80,10 @@ class TestAPI:
         test_pdf_path = create_test_pdf()
 
         try:
-            with open(test_pdf_path, 'rb') as f:
+            with open(test_pdf_path, "rb") as f:
                 upload_response = client.post(
                     "/api/v1/pdf/upload",
-                    files={"file": ("test.pdf", f, "application/pdf")}
+                    files={"file": ("test.pdf", f, "application/pdf")},
                 )
 
             pdf_id = upload_response.json()["id"]
@@ -105,21 +107,17 @@ class TestAPI:
         test_pdf_path = create_test_pdf()
 
         try:
-            with open(test_pdf_path, 'rb') as f:
+            with open(test_pdf_path, "rb") as f:
                 upload_response = client.post(
                     "/api/v1/pdf/upload",
-                    files={"file": ("test.pdf", f, "application/pdf")}
+                    files={"file": ("test.pdf", f, "application/pdf")},
                 )
 
             pdf_id = upload_response.json()["id"]
 
             # Try to crack (should fail since it's not protected)
             response = client.post(
-                f"/api/v1/crack/{pdf_id}",
-                json={
-                    "mode": "dictionary",
-                    "max_length": 4
-                }
+                f"/api/v1/crack/{pdf_id}", json={"mode": "dictionary", "max_length": 4}
             )
 
             # Should return error since PDF is not protected

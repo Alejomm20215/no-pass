@@ -27,7 +27,9 @@ class JohnTheRipperAttack(IAttackStrategy):
                 fh.write(f"{password}\n")
         return temp_file, temp_file
 
-    def _run_command(self, *args: str, capture: bool = False, timeout: Optional[int] = None) -> subprocess.CompletedProcess:
+    def _run_command(
+        self, *args: str, capture: bool = False, timeout: Optional[int] = None
+    ) -> subprocess.CompletedProcess:
         return subprocess.run(
             list(args),
             check=True,
@@ -49,7 +51,9 @@ class JohnTheRipperAttack(IAttackStrategy):
             if progress_callback:
                 progress_callback(5.0, "Generating hash with pdf2john")
 
-            with tempfile.NamedTemporaryFile(prefix="pdf_hash_", suffix=".txt", delete=False) as tmp_hash:
+            with tempfile.NamedTemporaryFile(
+                prefix="pdf_hash_", suffix=".txt", delete=False
+            ) as tmp_hash:
                 hash_file = Path(tmp_hash.name)
                 proc = self._run_command(
                     self.options.pdf2john_binary,
@@ -60,7 +64,9 @@ class JohnTheRipperAttack(IAttackStrategy):
                 tmp_hash.write(proc.stdout.encode("utf-8", errors="ignore"))
 
             if hash_file.stat().st_size == 0:
-                return CrackResult(success=False, method="john", error="pdf2john produced empty hash")
+                return CrackResult(
+                    success=False, method="john", error="pdf2john produced empty hash"
+                )
 
             wordlist_path, temp_wordlist = self._prepare_wordlist()
 
@@ -130,3 +136,16 @@ class JohnTheRipperAttack(IAttackStrategy):
                 hash_file.unlink(missing_ok=True)
             if temp_wordlist and temp_wordlist.exists():
                 temp_wordlist.unlink(missing_ok=True)
+
+    def estimate_time(self) -> float:
+        """Rudimentary estimate based on presence of a wordlist and timeout."""
+        if self.options.wordlist or self.options.wordlist_file:
+            return min(float(self.options.timeout or 3600), 600.0)
+        # brute-force in john can be very slow; cap to timeout
+        return float(self.options.timeout or 3600)
+
+    def estimate_attempts(self) -> int:
+        """Approximate attempts; unknown for john, return 0 when using wordlist size."""
+        if self.options.wordlist:
+            return len(self.options.wordlist)
+        return 0

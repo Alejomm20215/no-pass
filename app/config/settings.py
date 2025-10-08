@@ -7,41 +7,41 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     """Application settings"""
-    
+
     # App info
     APP_NAME: str = "PDF Password Recovery Service"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
-    
+
     # API settings
     API_V1_PREFIX: str = "/api/v1"
     CORS_ORIGINS: List[str] = ["*"]
-    
+
     # Paths
     BASE_DIR: Path = Path(__file__).parent.parent.parent
     UPLOAD_DIR: Path = BASE_DIR / "data" / "uploads"
     OUTPUT_DIR: Path = BASE_DIR / "data" / "outputs"
     WORDLIST_DIR: Path = BASE_DIR / "config" / "wordlists"
-    
+
     # Limits
     MAX_FILE_SIZE: int = 100 * 1024 * 1024  # 100 MB
     MAX_ATTEMPTS_DEFAULT: int = 10000
     TIMEOUT_DEFAULT: int = 3600  # 1 hour
-    
+
     # Attack defaults
     DEFAULT_CHARSET: str = "numeric"
     DEFAULT_MIN_LENGTH: int = 1
     DEFAULT_MAX_LENGTH: int = 4
-    
+
     # Security
     SECRET_KEY: Optional[str] = None
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    
+
     class Config:
         env_file = ".env"
         case_sensitive = True
-    
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Create directories
@@ -71,7 +71,9 @@ class Settings(BaseSettings):
         if self.DEFAULT_MAX_LENGTH > 10:
             errors.append("DEFAULT_MAX_LENGTH cannot exceed 10")
         if self.DEFAULT_MIN_LENGTH > self.DEFAULT_MAX_LENGTH:
-            errors.append("DEFAULT_MIN_LENGTH cannot be greater than DEFAULT_MAX_LENGTH")
+            errors.append(
+                "DEFAULT_MIN_LENGTH cannot be greater than DEFAULT_MAX_LENGTH"
+            )
 
         # Check paths exist and are writable
         for path in [self.UPLOAD_DIR, self.OUTPUT_DIR, self.WORDLIST_DIR]:
@@ -88,4 +90,3 @@ class Settings(BaseSettings):
 
 # Global settings instance
 settings = Settings()
-

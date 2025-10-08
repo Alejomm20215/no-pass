@@ -10,7 +10,7 @@ Installation: pip install pikepdf
 
 Usage:
   python test_example.py
-  
+
 This will create 5 test PDFs in ./test_pdfs/ with known passwords:
   - test_simple.pdf (password: 123456)
   - test_dict.pdf (password: password)
@@ -35,16 +35,13 @@ def create_test_pdf(filename: Path, password: str):
     try:
         # Create simple PDF
         pdf = pikepdf.Pdf.new()
-        
+
         # Add blank page
         pdf.add_blank_page(page_size=(612, 792))  # Letter size
-        
+
         # Save with password
-        pdf.save(filename, encryption=pikepdf.Encryption(
-            owner=password,
-            user=password
-        ))
-        
+        pdf.save(filename, encryption=pikepdf.Encryption(owner=password, user=password))
+
         print(f"[OK] Created: {filename.name} (password: {password})")
         return True
     except Exception as e:
@@ -53,9 +50,9 @@ def create_test_pdf(filename: Path, password: str):
 
 
 def main():
-    print("="*70)
+    print("=" * 70)
     print("TEST PDF CREATOR")
-    print("="*70)
+    print("=" * 70)
     print("\nThis script creates protected test PDFs so you can")
     print("test the password recovery tools.\n")
 
@@ -88,20 +85,27 @@ def main():
     print("\nHOW TO TEST THE TOOLS:\n")
 
     print("1. Test dictionary attack:")
-    print(f"   python cli_crack.py --directory {test_dir} --mode dictionary --verbose\n")
+    print(
+        f"   python cli_crack.py --directory {test_dir} --mode dictionary --verbose\n"
+    )
 
     print("2. Test numeric brute force:")
-    print(f"   python cli_crack.py --file {test_dir}/test_simple.pdf --mode bruteforce --max-length 6\n")
+    print(
+        f"   python cli_crack.py --file {test_dir}/test_simple.pdf "
+        f"--mode bruteforce --max-length 6\n"
+    )
 
     print("3. Test complete automated process:")
     print(f"   python cli_crack.py --directory {test_dir} --mode both --save\n")
 
     print("4. Remove password (if you know it):")
-    print(f"   python cli_unlock.py {test_dir}/test_simple.pdf -p \"123456\" -o unlocked.pdf\n")
+    print(
+        f'   python cli_unlock.py {test_dir}/test_simple.pdf -p "123456" -o unlocked.pdf\n'
+    )
 
-    print("="*70)
+    print("=" * 70)
     print("TEST PDF PASSWORDS:")
-    print("="*70)
+    print("=" * 70)
     for filename, password, description in test_cases:
         print(f"  • {filename}")
         print(f"    Password: {password} ({description})")
@@ -112,4 +116,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

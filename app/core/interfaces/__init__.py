@@ -1,2 +1,1 @@
 """Interfaces (ports) for adapters"""
-
