@@ -1,0 +1,128 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# PDFs (test files and processed output)
+*.pdf
+test_pdfs/
+data/uploads/
+data/outputs/
+
+# Result files (contain sensitive information)
+passwords_found.txt
+unlock_report.txt
+*_password.txt
+*.results
+*.output
+
+# Custom wordlists (may contain sensitive passwords)
+custom_passwords.txt
+my_passwords.txt
+custom.txt
+wordlists/*.txt
+
+# Logs and debugging
+*.log
+debug.log
+app.log
+*.out
+
+# OS specific files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.lnk
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+*.swp
+*.swo
+*~
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+.conda/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Test artifacts
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+.cache
+
+# Environment files (don't commit actual values)
+.env
+.env.local
+.env.*.local
+
+# Database files (if using SQLite for testing)
+*.db
+*.sqlite
+*.sqlite3
+
+# Coverage reports
+coverage.xml
+*.cover
+.hypothesis/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
