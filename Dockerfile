@@ -16,10 +16,12 @@ RUN pip install --no-cache-dir --user -r requirements.txt
 
 # Install PyInstaller for building the CLI executable
 RUN pip install --no-cache-dir --user pyinstaller
+# Ensure local bin (where --user installs CLIs) is on PATH in builder
+ENV PATH="/root/.local/bin:${PATH}"
 
 # Copy full source and build the CLI executable
 COPY . .
-RUN pyinstaller --onefile --name pdf-password-tools scripts/cli_crack.py
+RUN python -m PyInstaller --onefile --name pdf-password-tools scripts/cli_crack.py
 
 # Stage 2: Runtime (minimal image for running the app)
 FROM python:3.11-slim AS runtime
