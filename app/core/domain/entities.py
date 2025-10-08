@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 from uuid import uuid4
 
 
@@ -59,7 +59,7 @@ class AttackOptions:
     min_length: int = 1
     max_length: int = 4
     max_attempts: int = 10000
-    wordlist: Optional[list[str]] = None
+    wordlist: Optional[List[str]] = None
     wordlist_file: Optional[Path] = None
     john_binary: str = "john"
     pdf2john_binary: str = "pdf2john.pl"

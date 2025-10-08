@@ -1,7 +1,7 @@
 """Application configuration"""
 
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 from pydantic_settings import BaseSettings
 
 
@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     
     # API settings
     API_V1_PREFIX: str = "/api/v1"
-    CORS_ORIGINS: list[str] = ["*"]
+    CORS_ORIGINS: List[str] = ["*"]
     
     # Paths
     BASE_DIR: Path = Path(__file__).parent.parent.parent
