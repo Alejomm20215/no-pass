@@ -18,6 +18,9 @@ from app.core.interfaces.attack_strategy import IAttackStrategy
 from app.core.interfaces.pdf_handler import IPDFHandler
 from app.core.domain.entities import CrackResult
 from app.config.settings import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class HuggingFaceAIGenerator:
@@ -28,19 +31,41 @@ class HuggingFaceAIGenerator:
         self.max_tokens = settings.AI_MAX_TOKENS
         self.temperature = settings.AI_TEMPERATURE
         self.generator = None
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
         if TRANSFORMERS_AVAILABLE:
             try:
+                # Try GPU first, fallback to CPU
+                device = "cuda" if torch.cuda.is_available() else "cpu"
+
                 # Use a lightweight text generation model
                 self.generator = pipeline(
                     "text-generation",
                     model=self.model_name,
-                    device=0 if self.device == "cuda" else -1,
-                    model_kwargs={"torch_dtype": torch.float16 if self.device == "cuda" else None}
+                    device=0 if device == "cuda" else -1,
+                    model_kwargs={
+                        "torch_dtype": torch.float16 if device == "cuda" else None,
+                        "low_cpu_mem_usage": True  # Reduce memory usage
+                    }
                 )
+
+                logger.info(f"AI model '{self.model_name}' loaded successfully on {device}")
+
+            except torch.cuda.CudaError as e:
+                logger.warning(f"CUDA error, falling back to CPU: {e}")
+                try:
+                    self.generator = pipeline(
+                        "text-generation",
+                        model=self.model_name,
+                        device=-1,  # Force CPU
+                        model_kwargs={"low_cpu_mem_usage": True}
+                    )
+                    logger.info(f"AI model '{self.model_name}' loaded successfully on CPU")
+                except Exception as e2:
+                    logger.error(f"Failed to load AI model on CPU: {e2}")
+                    self.generator = None
+
             except Exception as e:
-                print(f"Warning: Could not initialize local AI model: {e}")
+                logger.error(f"Could not initialize local AI model: {e}")
                 self.generator = None
 
     def generate_candidates(self, context: dict) -> List[str]:

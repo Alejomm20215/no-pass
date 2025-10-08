@@ -58,7 +58,7 @@ class BatchProcessUseCase:
         
         for pdf_file in pdf_files:
             filename = pdf_file.name
-            
+
             # Check if protected
             try:
                 is_protected = self.pdf_handler.is_protected(pdf_file)
@@ -68,72 +68,89 @@ class BatchProcessUseCase:
                         "message": "PDF is not password protected"
                     }
                     continue
+            except (FileNotFoundError, PermissionError) as e:
+                results[filename] = {
+                    "status": "failed",
+                    "message": f"File access error: {e}",
+                    "error_type": "file_error"
+                }
+                continue
             except Exception as e:
                 # If we can't determine protection status, assume protected and try to crack
                 if progress_callback:
                     progress_callback(filename, 0.0, f"Warning: Could not determine protection status: {e}")
-            
+
             # Crack password
             def file_progress(progress: float, message: str):
                 if progress_callback:
                     progress_callback(filename, progress, message)
             
-            crack_result = self.crack_use_case.execute(
-                pdf_file,
-                options,
-                file_progress
-            )
-
-            if not crack_result.success:
-                if "not password protected" in crack_result.error:
-                    results[filename] = {
-                        "status": "not_protected",
-                        "message": "PDF is not password protected",
-                        "crack_result": crack_result
-                    }
-                else:
-                    results[filename] = {
-                        "status": "failed",
-                        "message": "Password not found",
-                        "crack_result": crack_result
-                    }
-                continue
-            
-            # Password found
-            result_data = {
-                "status": "success",
-                "password": crack_result.password,
-                "method": crack_result.method,
-                "attempts": crack_result.attempts,
-                "duration": crack_result.duration,
-                "crack_result": crack_result
-            }
-            
-            # Auto unlock if requested
-            if auto_unlock:
-                output_path = pdf_file.with_name(f"{pdf_file.stem}_unlocked.pdf")
-                unlock_result = self.unlock_use_case.execute(
+            try:
+                crack_result = self.crack_use_case.execute(
                     pdf_file,
-                    crack_result.password,
-                    output_path
+                    options,
+                    file_progress
                 )
-                
-                result_data["unlocked"] = unlock_result.success
-                result_data["unlock_result"] = unlock_result
-                
-                if unlock_result.success:
-                    result_data["output_path"] = str(unlock_result.unlocked_path)
-                    
-                    # Delete original if requested
-                    if not keep_originals:
-                        try:
-                            pdf_file.unlink()
-                            result_data["original_deleted"] = True
-                        except Exception as e:
-                            result_data["original_deleted"] = False
-                            result_data["delete_error"] = str(e)
-            
-            results[filename] = result_data
+
+                if not crack_result.success:
+                    if "not password protected" in (crack_result.error or ""):
+                        results[filename] = {
+                            "status": "not_protected",
+                            "message": "PDF is not password protected",
+                            "crack_result": crack_result
+                        }
+                    else:
+                        results[filename] = {
+                            "status": "failed",
+                            "message": "Password not found",
+                            "crack_result": crack_result
+                        }
+                    continue
+
+                # Password found
+                result_data = {
+                    "status": "success",
+                    "password": crack_result.password,
+                    "method": crack_result.method,
+                    "attempts": crack_result.attempts,
+                    "duration": crack_result.duration,
+                    "crack_result": crack_result
+                }
+
+                # Auto unlock if requested
+                if auto_unlock:
+                    output_path = pdf_file.with_name(f"{pdf_file.stem}_unlocked.pdf")
+                    unlock_result = self.unlock_use_case.execute(
+                        pdf_file,
+                        crack_result.password,
+                        output_path
+                    )
+
+                    result_data["unlocked"] = unlock_result.success
+                    result_data["unlock_result"] = unlock_result
+
+                    if unlock_result.success:
+                        result_data["output_path"] = str(unlock_result.unlocked_path)
+
+                        # Delete original if requested
+                        if not keep_originals:
+                            try:
+                                pdf_file.unlink()
+                                result_data["original_deleted"] = True
+                            except Exception as e:
+                                result_data["original_deleted"] = False
+                                result_data["delete_error"] = str(e)
+
+                results[filename] = result_data
+
+            except Exception as e:
+                # Handle unexpected errors during cracking
+                results[filename] = {
+                    "status": "failed",
+                    "message": f"Unexpected error during cracking: {str(e)}",
+                    "error_type": "cracking_error"
+                }
+                continue
         
         return results
 
