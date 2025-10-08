@@ -1,2 +1,1 @@
 """Adapters for external dependencies"""
-

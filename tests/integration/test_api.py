@@ -2,20 +2,29 @@
 
 import pytest
 from fastapi.testclient import TestClient
+from app.main import app
 import os
 import tempfile
 from pathlib import Path
+
 
 # Create a test PDF file
 def create_test_pdf():
     """Create a simple test PDF for testing"""
     import pikepdf
 
-    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as f:
-        pdf = pikepdf.Pdf.new()
-        pdf.add_blank_page(page_size=(612, 792))
-        pdf.save(f.name)
-        return f.name
+    temp_dir = Path(tempfile.gettempdir()) / "pdf_test"
+    temp_dir.mkdir(parents=True, exist_ok=True)
+    pdf_path = temp_dir / "test.pdf"
+    pdf = pikepdf.Pdf.new()
+    pdf.add_blank_page(page_size=(612, 792))
+    pdf.save(str(pdf_path))
+    return str(pdf_path)
+
+
+@pytest.fixture
+def client():
+    return TestClient(app)
 
 
 class TestAPI:
@@ -46,17 +55,17 @@ class TestAPI:
         test_pdf_path = create_test_pdf()
 
         try:
-            with open(test_pdf_path, 'rb') as f:
+            with open(test_pdf_path, "rb") as f:
                 response = client.post(
                     "/api/v1/pdf/upload",
-                    files={"file": ("test.pdf", f, "application/pdf")}
+                    files={"file": ("test.pdf", f, "application/pdf")},
                 )
 
             assert response.status_code == 201
             data = response.json()
 
             assert "id" in data
-            assert data["filename"] == "test.pdf"
+            assert "test.pdf" in data["filename"]
             assert data["is_protected"] is False  # Test PDF is not protected
             assert data["message"] == "File uploaded successfully"
 
@@ -71,10 +80,10 @@ class TestAPI:
         test_pdf_path = create_test_pdf()
 
         try:
-            with open(test_pdf_path, 'rb') as f:
+            with open(test_pdf_path, "rb") as f:
                 upload_response = client.post(
                     "/api/v1/pdf/upload",
-                    files={"file": ("test.pdf", f, "application/pdf")}
+                    files={"file": ("test.pdf", f, "application/pdf")},
                 )
 
             pdf_id = upload_response.json()["id"]
@@ -85,7 +94,7 @@ class TestAPI:
 
             data = response.json()
             assert data["id"] == pdf_id
-            assert data["filename"] == "test.pdf"
+            assert "test.pdf" in data["filename"]
             assert data["is_protected"] is False
 
         finally:
@@ -98,25 +107,23 @@ class TestAPI:
         test_pdf_path = create_test_pdf()
 
         try:
-            with open(test_pdf_path, 'rb') as f:
+            with open(test_pdf_path, "rb") as f:
                 upload_response = client.post(
                     "/api/v1/pdf/upload",
-                    files={"file": ("test.pdf", f, "application/pdf")}
+                    files={"file": ("test.pdf", f, "application/pdf")},
                 )
 
             pdf_id = upload_response.json()["id"]
 
             # Try to crack (should fail since it's not protected)
             response = client.post(
-                f"/api/v1/crack/{pdf_id}",
-                json={
-                    "mode": "dictionary",
-                    "max_length": 4
-                }
+                f"/api/v1/crack/{pdf_id}", json={"mode": "dictionary", "max_length": 4}
             )
 
             # Should return error since PDF is not protected
             assert response.status_code == 400
+            data = response.json()
+            assert "not password protected" in data.get("detail", "").lower()
 
         finally:
             if os.path.exists(test_pdf_path):

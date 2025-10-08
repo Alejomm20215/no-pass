@@ -126,3 +126,8 @@ Pipfile.lock
 # PEP 582
 __pypackages__/
 
+# bandit report
+bandit-report.json
+
+#MakeFile
+Makefile

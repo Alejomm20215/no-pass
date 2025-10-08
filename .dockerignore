@@ -59,12 +59,11 @@ Thumbs.db
 desktop.ini
 *.lnk
 
-# Documentation (not needed in container)
+# Documentation (not needed in container, but keep README for reference)
 docs/
-*.md
+# *.md  # allow README.md to be included if needed
 
-# Development tools and scripts
-scripts/
+# Development tools and scripts (allow scripts for building CLI)
 requirements-dev.txt
 
 # Docker files (avoid recursive copies)

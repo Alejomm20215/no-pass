@@ -10,7 +10,7 @@ from app.adapters.repositories.wordlist_provider import FileWordlistProvider
 from app.core.use_cases.crack_password import CrackPasswordUseCase
 from app.core.use_cases.unlock_pdf import UnlockPDFUseCase
 from app.core.use_cases.batch_process import BatchProcessUseCase
-from app.adapters.strategies.huggingface_attack import HuggingFaceAIGenerator
+from typing import Optional, Any
 
 
 @lru_cache()
@@ -35,9 +35,9 @@ def get_wordlist_provider() -> IWordlistProvider:
 
 
 @lru_cache()
-def get_hf_generator() -> HuggingFaceAIGenerator:
-    """Get Hugging Face AI generator"""
-    return HuggingFaceAIGenerator()
+def get_hf_generator() -> Optional[Any]:
+    """AI generator not available in this build"""
+    return None
 
 
 def get_crack_password_use_case() -> CrackPasswordUseCase:
@@ -45,15 +45,13 @@ def get_crack_password_use_case() -> CrackPasswordUseCase:
     return CrackPasswordUseCase(
         pdf_handler=get_pdf_handler(),
         wordlist_provider=get_wordlist_provider(),
-        hf_generator=get_hf_generator()
+        hf_generator=get_hf_generator(),
     )
 
 
 def get_unlock_pdf_use_case() -> UnlockPDFUseCase:
     """Get unlock PDF use case"""
-    return UnlockPDFUseCase(
-        pdf_handler=get_pdf_handler()
-    )
+    return UnlockPDFUseCase(pdf_handler=get_pdf_handler())
 
 
 def get_batch_process_use_case() -> BatchProcessUseCase:
@@ -61,6 +59,5 @@ def get_batch_process_use_case() -> BatchProcessUseCase:
     return BatchProcessUseCase(
         crack_use_case=get_crack_password_use_case(),
         unlock_use_case=get_unlock_pdf_use_case(),
-        pdf_handler=get_pdf_handler()
+        pdf_handler=get_pdf_handler(),
     )
-

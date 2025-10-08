@@ -2,7 +2,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 import time
-from typing import Optional, Callable
+from typing import Optional, Callable, Tuple
 
 from app.core.domain.entities import AttackOptions, CrackResult
 from app.core.interfaces.attack_strategy import IAttackStrategy
@@ -14,20 +14,24 @@ class PdfCrackAttack(IAttackStrategy):
     def __init__(self, options: AttackOptions):
         self.options = options
 
-    def _prepare_wordlist(self) -> tuple[Optional[Path], Optional[Path]]:
+    def _prepare_wordlist(self) -> Tuple[Optional[Path], Optional[Path]]:
         if self.options.wordlist_file:
             return self.options.wordlist_file, None
 
         if not self.options.wordlist:
             return None, None
 
-        temp_file = Path(tempfile.mkstemp(prefix="pdfcrack_wordlist_", suffix=".txt")[1])
+        temp_file = Path(
+            tempfile.mkstemp(prefix="pdfcrack_wordlist_", suffix=".txt")[1]
+        )
         with temp_file.open("w", encoding="utf-8", errors="ignore") as fh:
             for password in self.options.wordlist:
                 fh.write(f"{password}\n")
         return temp_file, temp_file
 
-    def _run_command(self, *args: str, timeout: Optional[int] = None, capture: bool = False) -> subprocess.CompletedProcess:
+    def _run_command(
+        self, *args: str, timeout: Optional[int] = None, capture: bool = False
+    ) -> subprocess.CompletedProcess:
         return subprocess.run(
             list(args),
             check=True,
@@ -55,8 +59,20 @@ class PdfCrackAttack(IAttackStrategy):
             if wordlist_path:
                 args.extend(["-w", str(wordlist_path)])
             else:
-                args.extend(["-c", "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"])
-                args.extend(["-n", str(self.options.min_length), "-m", str(self.options.max_length)])
+                args.extend(
+                    [
+                        "-c",
+                        "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                    ]
+                )
+                args.extend(
+                    [
+                        "-n",
+                        str(self.options.min_length),
+                        "-m",
+                        str(self.options.max_length),
+                    ]
+                )
 
             proc = self._run_command(*args, capture=True, timeout=self.options.timeout)
 
@@ -106,3 +122,13 @@ class PdfCrackAttack(IAttackStrategy):
         finally:
             if temp_wordlist and temp_wordlist.exists():
                 temp_wordlist.unlink(missing_ok=True)
+
+    def estimate_time(self) -> float:
+        """Estimate roughly proportional to timeout, capped for reporting."""
+        return min(float(self.options.timeout or 3600), 900.0)
+
+    def estimate_attempts(self) -> int:
+        """Return wordlist size when provided, else 0 (unknown)."""
+        if self.options.wordlist:
+            return len(self.options.wordlist)
+        return 0

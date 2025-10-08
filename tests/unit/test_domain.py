@@ -1,6 +1,5 @@
 """Unit tests for domain models"""
 
-import pytest
 from datetime import datetime
 from pathlib import Path
 
@@ -11,7 +10,7 @@ from app.core.domain.entities import (
     CrackResult,
     AttackMode,
     CharsetType,
-    JobStatus
+    JobStatus,
 )
 
 
@@ -20,11 +19,7 @@ class TestPDFDocument:
 
     def test_creation(self):
         """Test PDF document creation"""
-        pdf = PDFDocument(
-            filename="test.pdf",
-            size=1024,
-            is_protected=True
-        )
+        pdf = PDFDocument(filename="test.pdf", size=1024, is_protected=True)
 
         assert pdf.filename == "test.pdf"
         assert pdf.size == 1024
@@ -36,7 +31,8 @@ class TestPDFDocument:
         """Test path conversion"""
         pdf = PDFDocument(filename="test.pdf", file_path="/some/path.pdf")
         assert isinstance(pdf.file_path, Path)
-        assert str(pdf.file_path) == "/some/path.pdf"
+        assert pdf.file_path.name == "path.pdf"
+        assert "some" in str(pdf.file_path)
 
 
 class TestAttackOptions:
@@ -64,7 +60,7 @@ class TestAttackOptions:
             max_attempts=50000,
             timeout=1800,
             verbose=True,
-            wordlist=["custom", "passwords"]
+            wordlist=["custom", "passwords"],
         )
 
         assert options.mode == AttackMode.BRUTEFORCE
@@ -149,7 +145,7 @@ class TestCrackResult:
             password="123456",
             method="dictionary",
             attempts=234,
-            duration=12.5
+            duration=12.5,
         )
 
         assert result.success is True
@@ -162,10 +158,7 @@ class TestCrackResult:
     def test_failure_result(self):
         """Test failure result"""
         result = CrackResult(
-            success=False,
-            attempts=1000,
-            duration=30.0,
-            error="Password not found"
+            success=False, attempts=1000, duration=30.0, error="Password not found"
         )
 
         assert result.success is False

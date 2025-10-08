@@ -70,11 +70,11 @@ jobs:
 
     - name: Run Black (code formatting)
       run: |
-        black --check --diff app/ tests/ scripts/ cli_*.py
+        black --check --diff app/ tests/ scripts/
 
     - name: Run Flake8 (style checking)
       run: |
-        flake8 app/ tests/ scripts/ cli_*.py --max-line-length=100 --extend-ignore=E203,W503
+        flake8 app/ tests/ scripts/ --max-line-length=100 --extend-ignore=E203,W503
 
     - name: Run MyPy (type checking)
       run: |
@@ -85,7 +85,7 @@ jobs:
         bandit -r app/ -f json -o bandit-report.json || true
 
     - name: Upload security report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: security-report
         path: bandit-report.json
@@ -112,10 +112,10 @@ jobs:
 
     - name: Build executable (Linux)
       run: |
-        pyinstaller --onefile --name pdf-password-tools cli_crack.py
+        pyinstaller --onefile --name pdf-password-tools scripts/cli_crack.py
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: pdf-password-tools-linux
         path: dist/pdf-password-tools
@@ -138,6 +138,7 @@ jobs:
         context: .
         file: ./Dockerfile
         push: false
+        load: true
         tags: pdf-password-tools:test
         cache-from: type=gha
         cache-to: type=gha,mode=max
@@ -151,7 +152,7 @@ jobs:
         docker save pdf-password-tools:test | gzip > pdf-password-tools-docker.tar.gz
 
     - name: Upload Docker artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: pdf-password-tools-docker
         path: pdf-password-tools-docker.tar.gz
