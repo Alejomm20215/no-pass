@@ -62,13 +62,15 @@ async def crack_pdf_password(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+    if not result.success:
+        raise HTTPException(status_code=400, detail=result.error or "Cracking failed")
+
     return CrackResponse(
-        success=result.success,
+        success=True,
         password=result.password,
         method=result.method,
         attempts=result.attempts,
-        duration=result.duration,
-        error=result.error
+        duration=result.duration
     )
 
 

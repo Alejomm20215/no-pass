@@ -17,7 +17,7 @@ from app.adapters.strategies.bruteforce_attack import BruteForceAttack
 from app.adapters.strategies.hybrid_attack import HybridAttack
 from app.adapters.strategies.john_attack import JohnTheRipperAttack
 from app.adapters.strategies.pdfcrack_attack import PdfCrackAttack
-from app.adapters.strategies.huggingface_attack import HuggingFaceAttack, HuggingFaceAIGenerator
+from typing import Any
 
 
 class CrackPasswordUseCase:
@@ -27,7 +27,7 @@ class CrackPasswordUseCase:
         self,
         pdf_handler: IPDFHandler,
         wordlist_provider: IWordlistProvider,
-        hf_generator: Optional[HuggingFaceAIGenerator] = None
+        hf_generator: Optional[Any] = None
     ):
         self.pdf_handler = pdf_handler
         self.wordlist_provider = wordlist_provider
@@ -115,12 +115,10 @@ class CrackPasswordUseCase:
         elif options.mode == AttackMode.PDFCRACK:
             strategy = PdfCrackAttack(options)
         elif options.mode == AttackMode.AI_ATTACK:
-            if not self.hf_generator:
-                return CrackResult(
-                    success=False,
-                    error="AI generator not available"
-                )
-            strategy = HuggingFaceAttack(self.pdf_handler, self.hf_generator)
+            return CrackResult(
+                success=False,
+                error="AI attack is not available in this build"
+            )
         else:
             return CrackResult(
                 success=False,
