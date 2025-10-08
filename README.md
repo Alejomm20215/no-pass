@@ -49,6 +49,18 @@ python remove_password_pikepdf.py bank.pdf -p "MyPass!"
 
 **Note**: Only unlock PDFs you own or have permission to modify.
 
+### AI-Powered Password Generation
+
+For intelligent password generation, install local AI models (no API keys needed):
+
+```bash
+pip install transformers torch
+```
+
+The AI analyzes PDF context (filename, size, date) and generates contextually relevant password candidates using a lightweight local model (distilgpt2).
+
+Use AI mode: `python cli_crack.py --file invoice.pdf --mode ai_attack`
+
 ---
 
 ## 🚀 API Usage (FastAPI Backend)
@@ -158,15 +170,25 @@ python cli_crack.py --directory ./pdfs --wordlist my_passwords.txt
 python cli_crack.py --file doc.pdf --mode both
 ```
 
+#### AI-powered attack
+```bash
+python cli_crack.py --file invoice.pdf --mode ai_attack
+# Uses AI to generate contextually relevant passwords
+```
+
 ### Attack Modes
 - `dictionary`: Try common passwords (default)
 - `bruteforce`: Generate all combinations
 - `both`: Dictionary first, then brute force
+- `ai_attack`: AI-powered contextual password generation
+- `john`: Use John the Ripper
+- `pdfcrack`: Use PDFCrack
 
-### Brute Force Options
-- `--charset`: `numeric`, `lowercase`, `uppercase`, `alphanumeric`, `all`
+### Attack Options
+- `--charset`: `numeric`, `lowercase`, `uppercase`, `alphanumeric`, `all` (for brute force)
 - `--min-length`: Minimum password length (default: 1)
 - `--max-length`: Maximum password length (default: 4)
+- `--wordlist`: Custom dictionary file
 
 ### Other Options
 - `--verbose`: Show detailed progress

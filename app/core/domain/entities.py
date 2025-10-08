@@ -24,6 +24,7 @@ class AttackMode(str, Enum):
     HYBRID = "both"  # Try dictionary first, then bruteforce
     JOHN_RIPPER = "john"
     PDFCRACK = "pdfcrack"
+    AI_ATTACK = "ai_attack"  # AI-powered contextual password generation
 
 
 class CharsetType(str, Enum):

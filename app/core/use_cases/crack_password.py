@@ -17,18 +17,21 @@ from app.adapters.strategies.bruteforce_attack import BruteForceAttack
 from app.adapters.strategies.hybrid_attack import HybridAttack
 from app.adapters.strategies.john_attack import JohnTheRipperAttack
 from app.adapters.strategies.pdfcrack_attack import PdfCrackAttack
+from app.adapters.strategies.huggingface_attack import HuggingFaceAttack, HuggingFaceAIGenerator
 
 
 class CrackPasswordUseCase:
     """Use case for cracking PDF password"""
-    
+
     def __init__(
         self,
         pdf_handler: IPDFHandler,
-        wordlist_provider: IWordlistProvider
+        wordlist_provider: IWordlistProvider,
+        hf_generator: Optional[HuggingFaceAIGenerator] = None
     ):
         self.pdf_handler = pdf_handler
         self.wordlist_provider = wordlist_provider
+        self.hf_generator = hf_generator
     
     def execute(
         self,
@@ -55,11 +58,25 @@ class CrackPasswordUseCase:
             )
         
         # Check if PDF is protected
-        if not self.pdf_handler.is_protected(pdf_path):
+        try:
+            is_protected = self.pdf_handler.is_protected(pdf_path)
+            if not is_protected:
+                return CrackResult(
+                    success=False,
+                    error="PDF is not password protected"
+                )
+        except (FileNotFoundError, PermissionError) as e:
+            # Re-raise file system errors
             return CrackResult(
                 success=False,
-                error="PDF is not password protected"
+                error=str(e)
             )
+        except Exception as e:
+            # If we can't determine protection status, log warning but continue
+            # Some PDFs might have restrictions that aren't detected properly
+            if progress_callback:
+                progress_callback(0.0, f"Warning: Could not determine protection status: {e}")
+            # Continue with attack - some PDFs might still be protected despite detection failure
         
         # Get wordlist
         wordlist = options.wordlist
@@ -97,6 +114,13 @@ class CrackPasswordUseCase:
             strategy = JohnTheRipperAttack(options)
         elif options.mode == AttackMode.PDFCRACK:
             strategy = PdfCrackAttack(options)
+        elif options.mode == AttackMode.AI_ATTACK:
+            if not self.hf_generator:
+                return CrackResult(
+                    success=False,
+                    error="AI generator not available"
+                )
+            strategy = HuggingFaceAttack(self.pdf_handler, self.hf_generator)
         else:
             return CrackResult(
                 success=False,

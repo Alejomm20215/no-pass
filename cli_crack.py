@@ -40,6 +40,7 @@ Examples:
   python cli_crack.py --file document.pdf --mode dictionary
   python cli_crack.py --directory ./pdfs --mode bruteforce --max-length 6
   python cli_crack.py --file protected.pdf --mode john --john-binary /usr/bin/john
+  python cli_crack.py --file invoice.pdf --mode ai_attack
         """
     )
 
@@ -53,7 +54,7 @@ Examples:
     # Attack mode
     parser.add_argument(
         '--mode', '-m',
-        choices=['dictionary', 'bruteforce', 'both', 'john', 'pdfcrack'],
+        choices=['dictionary', 'bruteforce', 'both', 'john', 'pdfcrack', 'ai_attack'],
         default='dictionary',
         help='Attack method (default: dictionary)'
     )
@@ -115,6 +116,7 @@ Examples:
         'both': AttackMode.HYBRID,
         'john': AttackMode.JOHN_RIPPER,
         'pdfcrack': AttackMode.PDFCRACK,
+        'ai_attack': AttackMode.AI_ATTACK,
     }
     
     charset_map = {
@@ -138,15 +140,63 @@ Examples:
         verbose=args.verbose
     )
     
+    # Input validation
+    def validate_inputs():
+        """Validate all input parameters"""
+        # Validate file path
+        if args.file:
+            pdf_path = Path(args.file)
+            if not pdf_path.exists():
+                logger.error(f"File not found: {pdf_path}")
+                sys.exit(1)
+            if not pdf_path.is_file():
+                logger.error(f"Path is not a file: {pdf_path}")
+                sys.exit(1)
+
+        # Validate directory path
+        if args.directory:
+            directory = Path(args.directory)
+            if not directory.exists():
+                logger.error(f"Directory not found: {directory}")
+                sys.exit(1)
+            if not directory.is_dir():
+                logger.error(f"Path is not a directory: {directory}")
+                sys.exit(1)
+
+        # Validate attack parameters
+        if args.min_length < 1:
+            logger.error("Minimum length must be at least 1")
+            sys.exit(1)
+        if args.max_length < args.min_length:
+            logger.error("Maximum length must be >= minimum length")
+            sys.exit(1)
+        if args.max_length > 10:  # Reasonable upper limit
+            logger.error("Maximum length cannot exceed 10")
+            sys.exit(1)
+
+        # Validate charset
+        valid_charsets = ['numeric', 'lowercase', 'uppercase', 'alphanumeric', 'all']
+        if args.charset not in valid_charsets:
+            logger.error(f"Invalid charset. Must be one of: {', '.join(valid_charsets)}")
+            sys.exit(1)
+
+        # Validate wordlist file if provided
+        if args.wordlist:
+            wordlist_path = Path(args.wordlist)
+            if not wordlist_path.exists():
+                logger.error(f"Wordlist file not found: {wordlist_path}")
+                sys.exit(1)
+            if not wordlist_path.is_file():
+                logger.error(f"Wordlist path is not a file: {wordlist_path}")
+                sys.exit(1)
+
+    validate_inputs()
+
     # Process
     try:
         if args.file:
             # Single file
             pdf_path = Path(args.file)
-
-            if not pdf_path.exists():
-                logger.error(f"File not found: {pdf_path}")
-                sys.exit(1)
 
             print(f"\n{'='*60}")
             print(f"Processing: {pdf_path.name}")
@@ -175,8 +225,12 @@ Examples:
                 if args.save:
                     result_file = pdf_path.parent / f"{pdf_path.stem}_password.txt"
                     try:
-                        with open(result_file, 'w', encoding='utf-8') as f:
+                        # Use utf-8 with error handling for any special characters
+                        with open(result_file, 'w', encoding='utf-8', errors='replace') as f:
                             f.write(f"Password for {pdf_path.name}: {result.password}\n")
+                            f.write(f"Method: {result.method}\n")
+                            f.write(f"Attempts: {result.attempts}\n")
+                            f.write(f"Duration: {result.duration:.2f}s\n")
                         print(f"\n[INFO] Password saved to: {result_file}")
                     except Exception as e:
                         logger.warning(f"Could not save result file: {e}")
@@ -186,7 +240,10 @@ Examples:
                 print(f"Attempts: {result.attempts}")
                 print(f"Duration: {result.duration:.2f}s")
                 if result.error:
-                    print(f"Error: {result.error}")
+                    if "not password protected" in result.error:
+                        print(f"[INFO] The PDF appears to be unprotected (no password required)")
+                    else:
+                        print(f"Error: {result.error}")
                 sys.exit(1)
     
         else:
@@ -195,10 +252,6 @@ Examples:
             batch_use_case = get_batch_process_use_case()
 
             directory = Path(args.directory)
-
-            if not directory.exists() or not directory.is_dir():
-                logger.error(f"Directory not found or not a directory: {directory}")
-                sys.exit(1)
 
             print(f"\nProcessing directory: {directory}")
             print(f"Mode: {args.mode.upper()}")
@@ -227,23 +280,38 @@ Examples:
 
             # Print details
             for filename, result in results.items():
-                if result.get('status') == 'success':
+                status = result.get('status', 'unknown')
+                if status == 'success':
                     print(f"\n[SUCCESS] {filename}")
                     print(f"   Password: {result['password']}")
                     print(f"   Method: {result['method']}")
                     print(f"   Attempts: {result['attempts']}")
                     print(f"   Duration: {result['duration']:.2f}s")
+                elif status == 'failed':
+                    print(f"\n[FAILED] {filename}")
+                    if 'message' in result:
+                        print(f"   Reason: {result['message']}")
+                elif status == 'not_protected':
+                    print(f"\n[INFO] {filename}")
+                    print(f"   Status: Not password protected")
 
             # Save results if requested
             if args.save and success_count > 0:
                 results_file = directory / "passwords_found.txt"
                 try:
-                    with open(results_file, 'w', encoding='utf-8') as f:
+                    with open(results_file, 'w', encoding='utf-8', errors='replace') as f:
                         f.write("Found Passwords\n")
                         f.write("="*60 + "\n\n")
                         for filename, result in results.items():
                             if result.get('status') == 'success':
                                 f.write(f"{filename}: {result['password']}\n")
+                                if 'method' in result:
+                                    f.write(f"  Method: {result['method']}\n")
+                                if 'attempts' in result:
+                                    f.write(f"  Attempts: {result['attempts']}\n")
+                                if 'duration' in result:
+                                    f.write(f"  Duration: {result['duration']:.2f}s\n")
+                                f.write("\n")
                     print(f"\n[INFO] Results saved to: {results_file}")
                 except Exception as e:
                     logger.warning(f"Could not save results file: {e}")

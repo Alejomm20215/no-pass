@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     SECRET_KEY: Optional[str] = None
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+
+    # AI Model Settings
+    AI_MODEL_NAME: str = "distilgpt2"  # Small, fast, free model
+    AI_MAX_TOKENS: int = 50
+    AI_TEMPERATURE: float = 0.8
     
     class Config:
         env_file = ".env"
@@ -72,6 +77,14 @@ class Settings(BaseSettings):
             errors.append("DEFAULT_MAX_LENGTH cannot exceed 10")
         if self.DEFAULT_MIN_LENGTH > self.DEFAULT_MAX_LENGTH:
             errors.append("DEFAULT_MIN_LENGTH cannot be greater than DEFAULT_MAX_LENGTH")
+
+        # Check AI model settings
+        if not self.AI_MODEL_NAME or not isinstance(self.AI_MODEL_NAME, str):
+            errors.append("AI_MODEL_NAME must be a valid string")
+        if self.AI_MAX_TOKENS <= 0 or self.AI_MAX_TOKENS > 1000:
+            errors.append("AI_MAX_TOKENS must be between 1 and 1000")
+        if self.AI_TEMPERATURE <= 0 or self.AI_TEMPERATURE > 2.0:
+            errors.append("AI_TEMPERATURE must be between 0.1 and 2.0")
 
         # Check paths exist and are writable
         for path in [self.UPLOAD_DIR, self.OUTPUT_DIR, self.WORDLIST_DIR]:
