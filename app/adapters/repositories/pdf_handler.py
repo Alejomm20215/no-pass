@@ -22,12 +22,19 @@ class PikePDFHandler(IPDFHandler):
         """Check if PDF is password protected"""
         try:
             with pikepdf.open(pdf_path):
-                return False  # Opened without password
+                return False  # Opened without password - not protected
         except pikepdf.PasswordError:
-            return True  # Requires password
+            return True  # Requires password - protected
+        except FileNotFoundError:
+            raise FileNotFoundError(f"PDF file not found: {pdf_path}")
+        except PermissionError:
+            raise PermissionError(f"Permission denied accessing: {pdf_path}")
         except Exception as e:
-            print(f"Warning: Error checking {pdf_path.name}: {e}")
-            return False
+            # For other exceptions (corrupted PDF, etc.), assume it might be protected
+            # This is safer than assuming unprotected
+            print(f"Warning: Could not determine protection status for {pdf_path.name}: {e}")
+            print("Assuming protected to be safe - will attempt password cracking")
+            return True
     
     def try_password(self, pdf_path: Path, password: str) -> bool:
         """Try opening PDF with given password"""

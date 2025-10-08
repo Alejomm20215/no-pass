@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     SECRET_KEY: Optional[str] = None
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+
+    # AI Model Settings
+    AI_MODEL_NAME: str = "distilgpt2"  # Small, fast, free model
+    AI_MAX_TOKENS: int = 50
+    AI_TEMPERATURE: float = 0.8
     
     class Config:
         env_file = ".env"

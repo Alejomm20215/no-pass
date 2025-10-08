@@ -60,12 +60,18 @@ class BatchProcessUseCase:
             filename = pdf_file.name
             
             # Check if protected
-            if not self.pdf_handler.is_protected(pdf_file):
-                results[filename] = {
-                    "status": "not_protected",
-                    "message": "PDF is not password protected"
-                }
-                continue
+            try:
+                is_protected = self.pdf_handler.is_protected(pdf_file)
+                if not is_protected:
+                    results[filename] = {
+                        "status": "not_protected",
+                        "message": "PDF is not password protected"
+                    }
+                    continue
+            except Exception as e:
+                # If we can't determine protection status, assume protected and try to crack
+                if progress_callback:
+                    progress_callback(filename, 0.0, f"Warning: Could not determine protection status: {e}")
             
             # Crack password
             def file_progress(progress: float, message: str):
@@ -77,13 +83,20 @@ class BatchProcessUseCase:
                 options,
                 file_progress
             )
-            
+
             if not crack_result.success:
-                results[filename] = {
-                    "status": "failed",
-                    "message": "Password not found",
-                    "crack_result": crack_result
-                }
+                if "not password protected" in crack_result.error:
+                    results[filename] = {
+                        "status": "not_protected",
+                        "message": "PDF is not password protected",
+                        "crack_result": crack_result
+                    }
+                else:
+                    results[filename] = {
+                        "status": "failed",
+                        "message": "Password not found",
+                        "crack_result": crack_result
+                    }
                 continue
             
             # Password found

@@ -16,7 +16,10 @@ python cli_unlock.py protected.pdf -p "password" -o unlocked.pdf
 
 ### Don't know password → Crack it
 ```bash
-# Try common passwords (fastest)
+# AI-powered contextual generation (smartest)
+python cli_crack.py --file invoice.pdf --mode ai_attack
+
+# Try common passwords (fast)
 python cli_crack.py --file protected.pdf --mode dictionary
 
 # Custom wordlist
@@ -40,6 +43,7 @@ python cli_crack.py --directory ./pdfs --mode dictionary --save
 | `cli_unlock.py` | Remove password (if known) |
 | `cli_crack.py --mode dictionary` | Try common passwords |
 | `cli_crack.py --mode bruteforce` | Generate combinations |
+| `cli_crack.py --mode ai_attack` | AI-powered contextual generation |
 | `cli_crack.py --mode john` | Use John the Ripper |
 | `cli_crack.py --mode pdfcrack` | Use PDFCrack |
 | `cli_crack.py --directory` | Process folder of PDFs |
@@ -48,9 +52,10 @@ python cli_crack.py --directory ./pdfs --mode dictionary --save
 
 ## 📋 Workflow
 
-1. **Dictionary first** (fastest)
-2. **Custom wordlist** (contextual)
-3. **Brute force** (only for short passwords ≤6 chars)
+1. **AI-powered** (contextually relevant passwords)
+2. **Dictionary** (common passwords)
+3. **Custom wordlist** (your specific passwords)
+4. **Brute force** (only for short passwords ≤6 chars)
 
 ---
 
@@ -58,7 +63,8 @@ python cli_crack.py --directory ./pdfs --mode dictionary --save
 
 | Option | Description | Example |
 |--------|-------------|---------|
-| `--mode dictionary` | Common passwords | Default |
+| `--mode ai_attack` | AI contextual generation | Smartest first |
+| `--mode dictionary` | Common passwords | Fast fallback |
 | `--mode bruteforce` | All combinations | Short passwords |
 | `--max-length N` | Max password length | `--max-length 6` |
 | `--wordlist file` | Custom dictionary | `--wordlist custom.txt` |
@@ -71,6 +77,7 @@ python cli_crack.py --directory ./pdfs --mode dictionary --save
 
 | Attack | Time | Notes |
 |--------|------|-------|
+| AI-powered | ~10 sec | Contextually relevant passwords (local model) |
 | Dictionary | ~5 sec | 50 common passwords |
 | Brute force (1-4) | ~10 sec | 11,110 combinations |
 | Brute force (1-6) | ~15 min | 1M+ combinations |
@@ -80,6 +87,7 @@ python cli_crack.py --directory ./pdfs --mode dictionary --save
 ## 🆘 Common Issues
 
 **"Requires pikepdf"**: `pip install pikepdf`
+**"AI not available"**: `pip install transformers torch`
 **"Too slow"**: Use `--max-length 4` or `--charset numeric`
 **"Not found"**: Create custom wordlist with relevant names/dates
 
@@ -88,9 +96,9 @@ python cli_crack.py --directory ./pdfs --mode dictionary --save
 ## 🚀 30-Second Start
 
 ```bash
-pip install pikepdf
-python cli_crack.py --directory ./your_pdfs --save
-# Check results in passwords_found.txt
+pip install -r requirements.txt
+python cli_crack.py --file invoice.pdf --mode ai_attack
+# AI analyzes context and generates smart password candidates
 ```
 
 ---

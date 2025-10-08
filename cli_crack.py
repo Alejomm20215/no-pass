@@ -40,6 +40,7 @@ Examples:
   python cli_crack.py --file document.pdf --mode dictionary
   python cli_crack.py --directory ./pdfs --mode bruteforce --max-length 6
   python cli_crack.py --file protected.pdf --mode john --john-binary /usr/bin/john
+  python cli_crack.py --file invoice.pdf --mode ai_attack
         """
     )
 
@@ -53,7 +54,7 @@ Examples:
     # Attack mode
     parser.add_argument(
         '--mode', '-m',
-        choices=['dictionary', 'bruteforce', 'both', 'john', 'pdfcrack'],
+        choices=['dictionary', 'bruteforce', 'both', 'john', 'pdfcrack', 'ai_attack'],
         default='dictionary',
         help='Attack method (default: dictionary)'
     )
@@ -115,6 +116,7 @@ Examples:
         'both': AttackMode.HYBRID,
         'john': AttackMode.JOHN_RIPPER,
         'pdfcrack': AttackMode.PDFCRACK,
+        'ai_attack': AttackMode.AI_ATTACK,
     }
     
     charset_map = {
@@ -186,7 +188,10 @@ Examples:
                 print(f"Attempts: {result.attempts}")
                 print(f"Duration: {result.duration:.2f}s")
                 if result.error:
-                    print(f"Error: {result.error}")
+                    if "not password protected" in result.error:
+                        print(f"[INFO] The PDF appears to be unprotected (no password required)")
+                    else:
+                        print(f"Error: {result.error}")
                 sys.exit(1)
     
         else:
