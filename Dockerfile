@@ -17,8 +17,8 @@ RUN pip install --no-cache-dir --user -r requirements.txt
 # Install PyInstaller for building the CLI executable
 RUN pip install --no-cache-dir --user pyinstaller
 
-# Build the CLI executable
-COPY scripts/cli_crack.py .
+# Copy full source and build the CLI executable
+COPY . .
 RUN pyinstaller --onefile --name pdf-password-tools scripts/cli_crack.py
 
 # Stage 2: Runtime (minimal image for running the app)
